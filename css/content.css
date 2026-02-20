@@ -1,0 +1,44 @@
+/* css/content.css - Injected Styles */
+
+/* Bookmark Button */
+.ytp-bookmark-btn {
+  vertical-align: top;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.1s;
+  display: inline-block;
+  text-align: center;
+  float: left; /* Usually buttons are floated or flexed */
+}
+.ytp-bookmark-btn:hover {
+  opacity: 1;
+}
+.ytp-bookmark-btn svg {
+    fill: #fff;
+    width: 100%;
+    height: 100%;
+    padding: 6px; /* Adjust padding to match other icons */
+    box-sizing: border-box;
+}
+
+/* Progress Bar Dots */
+.bt-yt-bookmark-dot {
+  position: absolute;
+  top: 0;
+  width: 4px; /* Visible width */
+  height: 100%; /* Match bar height */
+  background-color: #ffcc00 !important;
+  cursor: pointer;
+  z-index: 50; /* Above regular progress but below tooltip */
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+.bt-yt-bookmark-dot:hover {
+  transform: translateX(-50%) scaleY(1.4);
+  background-color: #fff !important;
+  z-index: 51;
+}
