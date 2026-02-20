@@ -42,3 +42,112 @@
   background-color: #fff !important;
   z-index: 51;
 }
+
+/* Debug / Logger UI */
+#bt-yt-debug-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483647; /* Max z-index */
+  background-color: rgba(30, 30, 30, 0.9);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 14px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  border: 1px solid #555;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  user-select: none;
+}
+#bt-yt-debug-btn:hover {
+  opacity: 1;
+  background-color: #333;
+}
+
+#bt-yt-log-window {
+  position: fixed;
+  top: 100px;
+  left: 100px;
+  width: 500px;
+  height: 400px;
+  background-color: rgba(20, 20, 20, 0.95);
+  color: #0f0;
+  z-index: 2147483647;
+  border: 1px solid #444;
+  display: flex; /* overridden by JS toggle */
+  flex-direction: column;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 12px;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+}
+
+.bt-yt-log-header {
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  cursor: grab;
+  user-select: none;
+  font-weight: bold;
+  border-bottom: 1px solid #444;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bt-yt-log-header:active {
+  cursor: grabbing;
+}
+.bt-yt-log-header span:last-child {
+    font-size: 16px;
+    padding: 0 5px;
+}
+.bt-yt-log-header span:last-child:hover {
+    color: #ff5555;
+}
+
+#bt-yt-log-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 10px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.bt-yt-log-line {
+  margin-bottom: 2px;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 2px;
+}
+.bt-yt-log-line.error {
+  color: #ff5555;
+  background-color: rgba(255, 0, 0, 0.1);
+  border-left: 3px solid #ff5555;
+  padding-left: 4px;
+}
+.bt-yt-log-line.warn {
+  color: #ffcc00;
+  border-left: 3px solid #ffcc00;
+  padding-left: 4px;
+}
+.bt-yt-log-line.info {
+  color: #88ccff;
+}
+
+/* Scrollbar for log window */
+#bt-yt-log-content::-webkit-scrollbar {
+  width: 8px;
+}
+#bt-yt-log-content::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+#bt-yt-log-content::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+#bt-yt-log-content::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
