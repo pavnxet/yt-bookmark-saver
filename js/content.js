@@ -6,11 +6,12 @@
   let currentVideoId = new URLSearchParams(window.location.search).get('v');
   let playerControls = null;
   let progressBar = null;
-  let observer = null;
+  let pollingInterval = null;
 
   // Logger Logic
   const Logger = {
     logs: [],
+    MAX_LOGS: 50,
 
     init: function() {
         this.createUI();
@@ -41,17 +42,37 @@
         // Header (Draggable)
         const header = document.createElement('div');
         header.className = 'bt-yt-log-header';
-        header.textContent = 'Extension Logs';
+
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = 'Extension Logs';
+        header.appendChild(titleSpan);
+
+        // Controls Container
+        const controls = document.createElement('div');
+
+        // Clear Button
+        const clearBtn = document.createElement('span');
+        clearBtn.textContent = '🚫';
+        clearBtn.title = 'Clear Logs';
+        clearBtn.style.cursor = 'pointer';
+        clearBtn.style.marginRight = '10px';
+        clearBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // prevent drag start
+            document.getElementById('bt-yt-log-content').innerHTML = '';
+        });
+        controls.appendChild(clearBtn);
 
         // Close Button
         const closeBtn = document.createElement('span');
         closeBtn.textContent = '✕';
-        closeBtn.style.float = 'right';
+        closeBtn.title = 'Close';
         closeBtn.style.cursor = 'pointer';
         closeBtn.addEventListener('click', () => {
             logWindow.style.display = 'none';
         });
-        header.appendChild(closeBtn);
+        controls.appendChild(closeBtn);
+
+        header.appendChild(controls);
 
         // Content Area
         const content = document.createElement('div');
@@ -102,6 +123,9 @@
         const content = document.getElementById('bt-yt-log-content');
         if (content) {
             content.appendChild(line);
+            if (content.children.length > this.MAX_LOGS) {
+                content.removeChild(content.firstChild);
+            }
             content.scrollTop = content.scrollHeight;
         }
 
@@ -134,39 +158,58 @@
     currentVideoId = new URLSearchParams(window.location.search).get('v');
     Logger.log(`Current Video ID: ${currentVideoId}`);
 
+    // Clear any existing interval
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+    }
+
     if (!currentVideoId) {
         Logger.log('No video ID found. Waiting for navigation...', 'warn');
         return;
     }
 
-    // Disconnect existing observer if any
-    if (observer) {
-        Logger.log('Disconnecting existing observer.');
-        observer.disconnect();
-    }
+    // Polling Mechanism to replace MutationObserver
+    Logger.log('Starting Polling (1000ms)...');
 
-    // Wait for player controls to appear
-    Logger.log('Starting MutationObserver...');
-    observer = new MutationObserver((mutations, obs) => {
-        const controls = document.querySelector('.ytp-left-controls');
-        const progress = document.querySelector('.ytp-progress-bar');
-        const video = document.querySelector('video');
+    // Initial check
+    checkAndInject();
 
-        if (controls && progress && video) {
-            if (!playerControls) {
-                 Logger.log('Player controls found!');
-            }
-            playerControls = controls;
-            progressBar = progress;
-            injectButton();
-            renderDots();
+    pollingInterval = setInterval(checkAndInject, 1000);
+  }
+
+  function checkAndInject() {
+    // Stop if we left the page (though init is called on nav)
+    // Actually, background script handles navigation triggers.
+
+    const controls = document.querySelector('.ytp-left-controls');
+    const progress = document.querySelector('.ytp-progress-bar');
+    const video = document.querySelector('video');
+
+    if (controls && progress && video) {
+        let needsInjection = false;
+
+        // Check if we lost reference or they were removed from DOM
+        if (!playerControls || !document.contains(playerControls)) {
+             playerControls = controls;
+             needsInjection = true;
         }
-    });
+        if (!progressBar || !document.contains(progressBar)) {
+             progressBar = progress;
+             needsInjection = true;
+        }
 
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+        // Also check if button is missing (e.g. re-render)
+        if (!document.querySelector('.ytp-bookmark-btn')) {
+            needsInjection = true;
+        }
+
+        if (needsInjection) {
+             Logger.log('Controls found/updated. Injecting UI...');
+             injectButton();
+             renderDots();
+        }
+    }
   }
 
   // Inject Bookmark Button into Player Controls
@@ -205,8 +248,7 @@
     // Wait for video duration
     const video = document.querySelector('video');
     if (!video || isNaN(video.duration)) {
-        // Retry shortly if duration not ready
-        setTimeout(renderDots, 500);
+        // Retry shortly if duration not ready (next poll will catch it if we fail)
         return;
     }
 
@@ -296,6 +338,9 @@
         addNewBookmark();
     }
   });
+
+  // Handle window resize (dots position depends on bar width potentially, though % handles it)
+  // But if youtube redraws... polling handles it.
 
   // Start Logger
   if (document.readyState === 'loading') {
